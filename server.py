@@ -37,19 +37,27 @@ def calibrate():
 
     return {
         "message": "Calibrated!",
-        "focal_length": focal_length
+        "focal_length": focal_length,
+        "distance": KNOWN_DISTANCE-0.001,
+        "width": KNOWN_WIDTH-0.001
     }
 
 @app.route('/api/estimate', methods=["POST"])
 def estimate():
     global KNOWN_DISTANCE, KNOWN_WIDTH, focal_length
+    # TODO: read in d, w, and f_l from request
+    #KNOWN_DISTANCE = abs(float(request.form['distance']))+0.001
+    #KNOWN_WIDTH = abs(float(request.form['width']))+0.001
     img = read_in_image_file(request.form['file'])
     cm = distance_to_camera(img, KNOWN_WIDTH, focal_length)
     diopters = 100 / (cm+0.01)
     return {
         "message": "Estimated!",
         "cm": cm,
-        "diopters": diopters
+        "diopters": diopters,
+        "focal_length": focal_length,
+        "distance": KNOWN_DISTANCE-0.001,
+        "width": KNOWN_WIDTH-0.001
     }
 
 # find eyes in image and return PD in pixels
