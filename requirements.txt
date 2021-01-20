@@ -50,7 +50,6 @@ six==1.15.0
 terminado==0.9.1
 testpath==0.4.4
 tornado==6.1
-traitlets==5.0.5
 wcwidth==0.2.5
 webencodings==0.5.1
 Werkzeug==1.0.1
