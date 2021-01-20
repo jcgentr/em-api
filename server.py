@@ -9,13 +9,6 @@ import numpy as np
 app = Flask(__name__)
 CORS(app)
 
-########### Global variables ###########
-# initialize the known distance from the camera to the object
-KNOWN_DISTANCE = 0 # cm; would send this in request
-# initialize the known object width (pupilary distance)
-KNOWN_WIDTH = 0 # cm; PD; would send this in request (me: 6.8)
-focal_length = 0 # property of user's camera; goal of calibration
-
 @app.route('/')
 def home():
     return 'You hit the HOME route!'
@@ -23,41 +16,40 @@ def home():
 @app.route('/api/calibrate', methods=["POST"])
 def calibrate():
     # calculates focal length of user's camera
-    global KNOWN_DISTANCE, KNOWN_WIDTH, focal_length
-    KNOWN_DISTANCE = abs(float(request.form['distance']))+0.001
-    KNOWN_WIDTH = abs(float(request.form['width']))+0.001
-    print("d: {}, w: {}".format(KNOWN_DISTANCE,KNOWN_WIDTH))
+    known_distance = abs(float(request.form['distance']))+0.001
+    known_width = abs(float(request.form['width']))+0.001
+    print("d: {}, w: {}".format(known_distance, known_width))
     img = read_in_image_file(request.form['file'])
 
     pd_pixels = find_eyes(img)
 
     # use PD to find focal length of your camera
-    focal_length = (pd_pixels * KNOWN_DISTANCE) / KNOWN_WIDTH
+    focal_length = (pd_pixels * known_distance) / known_width
     print("focal length: {}".format(focal_length))
 
     return {
         "message": "Calibrated!",
         "focal_length": focal_length,
-        "distance": KNOWN_DISTANCE-0.001,
-        "width": KNOWN_WIDTH-0.001
+        "distance": known_distance-0.001,
+        "width": known_width-0.001
     }
 
 @app.route('/api/estimate', methods=["POST"])
 def estimate():
-    global KNOWN_DISTANCE, KNOWN_WIDTH, focal_length
-    # TODO: read in d, w, and f_l from request
-    #KNOWN_DISTANCE = abs(float(request.form['distance']))+0.001
-    #KNOWN_WIDTH = abs(float(request.form['width']))+0.001
+    known_distance = abs(float(request.form['distance']))+0.001
+    known_width = abs(float(request.form['width']))+0.001
+    focal_length = abs(float(request.form['focalLength']))+0.001
+
     img = read_in_image_file(request.form['file'])
-    cm = distance_to_camera(img, KNOWN_WIDTH, focal_length)
-    diopters = 100 / (cm+0.01)
+    cm = distance_to_camera(img, known_width, focal_length)
+    diopters = 100 / (cm+0.001)
     return {
         "message": "Estimated!",
         "cm": cm,
         "diopters": diopters,
-        "focal_length": focal_length,
-        "distance": KNOWN_DISTANCE-0.001,
-        "width": KNOWN_WIDTH-0.001
+        "focal_length": focal_length-0.001,
+        "distance": known_distance-0.001,
+        "width": known_width-0.001
     }
 
 # find eyes in image and return PD in pixels
